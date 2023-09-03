@@ -5,7 +5,7 @@ ConnectedClient = Struct.new(:socket, :username)
 
 class Server
   def initialize 
-    @server = TCPServer.open(PORT)
+    @server  = TCPServer.open(PORT)
     @clients = []
   end 
 
@@ -13,7 +13,7 @@ class Server
     loop do            
       Thread.start(@server.accept) do |client|   
         client.puts 'Welcome to the chat!'
-        client.puts "It's #{time_utc("%d/%m/%Y %I:%M %p")} and currently there are #{@clients.size} active users"
+        client.puts "It's #{server_time("%d/%m/%Y %I:%M %p")} and currently there are #{@clients.size} active users"
         client.puts 'What is your nickname?'
         nickname = ''
       
@@ -45,7 +45,7 @@ class Server
   def broadcast(sender = nil, message)
     @clients.each do |client|
       unless client == sender 
-        client.socket.puts "#{time_utc}> #{message}"
+        client.socket.puts "#{server_time}> #{message}"
       end 
     end 
   end
@@ -54,7 +54,7 @@ class Server
     ((3...20).include? nickname.size) && (@clients.none? {|client| client.username == nickname})
   end 
 
-  def time_utc(format = "%I:%M %p")
+  def server_time(format = "%I:%M %p")
     Time.now.utc.strftime(format)
   end 
 end 
