@@ -2,6 +2,7 @@ require 'socket'
 require 'json'
 require 'openssl'
 require 'base64'
+require 'byebug'
 
 PORT = 2000
 
@@ -36,26 +37,52 @@ class Client
 
   def receive_from_server
     while line = @socket.gets
-      if valid_json?(line)
-        response = JSON.parse(line)
-        if response.has_key? 'message'
-          
-          decrypted_message = decrypt(response['message'])
-          signature         = Base64.decode64(response['signature'])
-
-          if valid_signature?(signature,decrypted_message)
-            puts decrypted_message
-          else
-            p 'wrong signature'
-          end 
-        elsif response.has_key? 'public_key'
-          @public_key = OpenSSL::PKey::RSA.new(response['public_key'])
-        else
-          p response
-        end 
-      else
+      
+      if @public_key.nil? && !valid_json?(line)
         puts line
+        next
       end 
+      
+      response = JSON.parse(line)
+  
+      if response.has_key? 'public_key'
+        @public_key = OpenSSL::PKey::RSA.new(response['public_key'])
+        next
+      end
+
+      decrypted_message = decrypt(response['message'])
+      signature         = Base64.decode64(response['signature'])
+
+      if valid_signature?(signature,decrypted_message)
+        puts decrypted_message
+      else
+        p 'ERROR: server responded with invalid signature.'
+      end
+
+
+
+
+
+      # if valid_json?(line)
+      #   response = JSON.parse(line)
+      #   if response.has_key? 'message'
+          
+      #     decrypted_message = decrypt(response['message'])
+      #     signature         = Base64.decode64(response['signature'])
+
+      #     if valid_signature?(signature,decrypted_message)
+      #       puts decrypted_message
+      #     else
+      #       p 'wrong signature'
+      #     end 
+      #   elsif response.has_key? 'public_key'
+      #     @public_key = OpenSSL::PKey::RSA.new(response['public_key'])
+      #   else
+      #     p response
+      #   end 
+      # else
+      #   puts line
+      # end 
     end
   end
 

@@ -31,11 +31,11 @@ class Server
           client.puts 'invalid nickname. Please try again'
         end 
 
-        response = {public_key: @public_key}.to_json
-        client.puts response
-
         client.puts "Hello #{nickname}, enjoy the conversation!"
         broadcast("SYSTEM: #{nickname} enters the chat")
+
+        response = {public_key: @public_key}.to_json
+        client.puts response
 
         connected_client = ConnectedClient.new(client, nickname)
         @clients << connected_client
@@ -59,11 +59,10 @@ class Server
     @clients.each do |client|
       unless client == sender
         full_message = "#{server_time}> #{message}"
-        signature = sign_message(full_message)
              
         to_broadcast = {
           message: encrypt(full_message),
-          signature: signature
+          signature: sign_message(full_message)
         }.to_json
 
         client.socket.puts to_broadcast
