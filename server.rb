@@ -6,7 +6,7 @@ require 'openssl'
 require 'json'
 
 PORT       = 2000
-KEY_LENGTH = 4096
+KEY_SIZE   = 4096
 
 ConnectedClient = Struct.new(:socket, :username)
 
@@ -15,7 +15,7 @@ class Server
     @server       = TCPServer.open(PORT)
     @clients      = []
     @digest_func  = OpenSSL::Digest.new('SHA256')
-    @key_pair     = OpenSSL::PKey::RSA.new(KEY_LENGTH)
+    @key_pair     = OpenSSL::PKey::RSA.new(KEY_SIZE)
     @public_key   = OpenSSL::PKey::RSA.new(@key_pair.public_key.to_der)
   end
 
@@ -30,7 +30,6 @@ class Server
         loop do
           nickname = client.gets.chomp
           break if nickname_valid?(nickname)
-
           client.puts 'invalid nickname. Please try again'
         end
 
